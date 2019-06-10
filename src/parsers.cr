@@ -28,3 +28,9 @@ struct Nil
     nil
   end
 end
+
+struct Enum
+  def self.from_flag(value : String)
+    self.parse(value)
+  end
+end

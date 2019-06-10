@@ -1,7 +1,9 @@
 require "./parsers"
+require "logger"
 
 module Lemur
-  FLAGS = {} of String => FlagSettable
+  FLAGS      = {} of String => FlagSettable
+  AFTER_INIT = [] of Proc(Nil)
 
   class FlagError < Exception
   end
@@ -67,6 +69,14 @@ module Lemur
       raise FlagError.new("Lemur flag init failed.")
     end
     @@initialized = true
+    AFTER_INIT.each do |callback|
+      callback.call
+    end
+    AFTER_INIT.clear
+  end
+
+  def self.on_init(&block)
+    AFTER_INIT << block
   end
 
   def self.check_initialized!

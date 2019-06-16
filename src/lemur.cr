@@ -54,6 +54,13 @@ module Lemur
         @@argv.push(arg)
       end
     end
+    if Lemur::FLAGS["help"].is_set?
+      Lemur::FLAGS.keys.sort.each do |flag_name|
+        flag = Lemur::FLAGS[flag_name]
+        puts "  #{flag}. #{flag.docs}"
+      end
+      exit
+    end
     FLAGS.each do |name, flag|
       unless flag.is_set?
         flag.set_to_default!
@@ -85,10 +92,11 @@ module Lemur
     end
   end
 
-  macro flag(name, type, default = nil)
+  macro flag(name, type, docs, default = nil)
     module Lemur
       @@{{ name }} = Flag({{ type }}).new(
         {{ name.stringify }},
+        {{ docs }},
         {% if default != nil %}
           Proc({{ type }}).new { {{ default }} }
         {% else %}
@@ -105,10 +113,11 @@ end
 class Lemur::Flag(T)
   include FlagSettable
 
+  getter docs
   @value : T?
   @set = false
 
-  def initialize(@name : String, @default : Proc(T)?)
+  def initialize(@name : String, @docs : String, @default : Proc(T)?)
   end
 
   def set_from_value(value)
@@ -117,6 +126,8 @@ class Lemur::Flag(T)
         last_error = nil
         begin
           @value = {{ t }}.from_flag(value)
+          @set = true
+          return
         rescue error
           last_error = error
         end
@@ -158,6 +169,8 @@ class Lemur::Flag(T)
   end
 
   def to_s(io)
-    io << "--" << @name << ':' << T << "=" << @value
+    io << "--" << @name << " : " << T << " = " << @value.inspect
   end
 end
+
+Lemur.flag(help, Nil, "Show flag documentation")

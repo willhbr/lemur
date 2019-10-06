@@ -25,7 +25,13 @@ module Lemur
   @@argv = [] of String
   @@initialized = false
 
-  def self.init
+  def self.argv(include_unknown = false) : Array(String)
+    init(include_unknown)
+    @@argv
+  end
+
+  def self.init(include_unknown = false)
+    return if @@initialized
     @@argv.clear
     errors = [] of Exception
     escape_found = false
@@ -48,7 +54,11 @@ module Lemur
             errors << error
           end
         else
-          errors << FlagError.new("Got unknown flag --#{key}")
+          if include_unknown
+            @@argv.push(arg)
+          else
+            errors << FlagError.new("Got unknown flag --#{key}")
+          end
         end
       else
         @@argv.push(arg)
@@ -150,7 +160,7 @@ class Lemur::Flag(T)
     {% end %}
   end
 
-  def is_set?
+  def is_set? : Bool
     @set
   end
 

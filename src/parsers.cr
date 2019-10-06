@@ -17,6 +17,12 @@ struct Int32
   end
 end
 
+struct Int64
+  def self.from_flag(value : String)
+    value.to_i64
+  end
+end
+
 class String
   def self.from_flag(value : String)
     value

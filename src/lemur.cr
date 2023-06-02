@@ -1,5 +1,5 @@
 require "./parsers"
-require "logger"
+require "./json_flag"
 
 module Lemur
   FLAGS      = {} of String => FlagSettable
@@ -69,7 +69,7 @@ module Lemur
         flag = Lemur::FLAGS[flag_name]
         puts "  #{flag}. #{flag.docs}"
       end
-      exit
+      exit 127
     end
     FLAGS.each do |name, flag|
       unless flag.is_set?
@@ -102,6 +102,23 @@ module Lemur
     end
   end
 
+  macro json_flag(name, type, docs, default = nil)
+    module Lemur
+      @@{{ name }} = Flag(JSONFlag({{ type }})).new(
+        {{ name.stringify }},
+        {{ docs }},
+        {% if default != nil %}
+          Proc({{ type }}).new { {{ default }} }
+        {% else %}
+          nil
+        {% end %})
+      Lemur::FLAGS[{{ name.stringify }}] = @@{{ name }}
+      def self.{{ name }} : {{ type }}
+        @@{{ name }}.value.wrapped
+      end
+    end
+  end
+
   macro flag(name, type, docs, default = nil)
     module Lemur
       @@{{ name }} = Flag({{ type }}).new(
@@ -113,7 +130,7 @@ module Lemur
           nil
         {% end %})
       Lemur::FLAGS[{{ name.stringify }}] = @@{{ name }}
-      def self.{{ name }}
+      def self.{{ name }} : {{ type }}
         @@{{ name }}.value
       end
     end
@@ -133,14 +150,21 @@ class Lemur::Flag(T)
   def set_from_value(value)
     {% if T.union? %}
       {% for t in T.union_types %}
-        last_error = nil
-        begin
-          @value = {{ t }}.from_flag(value)
-          @set = true
-          return
-        rescue error
-          last_error = error
-        end
+        {% unless t == Nil %}
+          last_error = nil
+          begin
+            @value = {{ t }}.from_flag(value)
+            @set = true
+            return
+          rescue error
+            last_error = error
+          end
+        {% end %}
+      {% end %}
+      {% if T.nilable? %}
+        Nil.from_flag(value)
+        @set = true
+        return
       {% end %}
       if error = last_error
         raise last_error

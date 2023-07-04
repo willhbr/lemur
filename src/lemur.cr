@@ -66,24 +66,27 @@ module Lemur
     abstract def default : T
 
     def value : T
-      @value.not_nil!
+      @value || self.default
     end
   end
 
   module RepeatedFlagConfig(T)
     include ValueParsing(T)
-    @value = Array(T).new
+    getter value = Array(T).new
 
     def on_flag(value : String)
       @value << from_flag(value)
     end
 
-    def value : T
-      @value.not_nil!
+    def finished
     end
   end
 
+  @@initialised = false
+
   def self.init
+    return if @@initialised
+    @@initialised = true
     flags_per_name = FLAGS.to_h { |f| {f.name, f} }
     args = [] of String
     failures = [] of Exception
@@ -140,7 +143,7 @@ module Lemur
       module Lemur
         @@%flag = Lemur::Flag__{{ name }}%name.new
         FLAGS << @@%flag
-        def self.{{ name }} : {{ type }}
+        def self.{{ name }}
           @@%flag.value
         end
       end

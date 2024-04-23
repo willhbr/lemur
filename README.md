@@ -1,6 +1,4 @@
-# flags
-
-TODO: Write a description here
+# Lemur Flags
 
 ## Installation
 
@@ -9,7 +7,7 @@ TODO: Write a description here
    ```yaml
    dependencies:
      flags:
-       github: your-github-user/flags
+       github: willhbr/lemur
    ```
 
 2. Run `shards install`
@@ -17,18 +15,26 @@ TODO: Write a description here
 ## Usage
 
 ```crystal
-require "flags"
+require "lemur"
+
+Lemur.flag(my_flag, String, "A very important flag")
+
+# Read ARGV and set all the flags
+Lemur.init
+
+puts Lemur.my_flag
 ```
 
-TODO: Write usage instructions here
+Running the program:
 
-## Development
-
-TODO: Write development instructions here
+```shell
+$ ./my_program --my_flag="A very important value"
+A very important value
+```
 
 ## Contributing
 
-1. Fork it (<https://github.com/your-github-user/flags/fork>)
+1. Fork it (<https://github.com/willhbr/flags/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -36,4 +42,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [Will Richardson](https://github.com/your-github-user) - creator and maintainer
+- [Will Richardson](https://github.com/willhbr) - creator and maintainer
